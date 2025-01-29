@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RequestBody
 
 interface ExamControllerPort {
     @PostMapping
-    fun createNewExam(@RequestBody @Valid newExam: NewExam): ResponseEntity<ExamResponse>
+    suspend fun createNewExam(@RequestBody @Valid newExam: NewExam): ResponseEntity<ExamResponse>
 }

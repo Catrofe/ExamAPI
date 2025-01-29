@@ -8,7 +8,7 @@ import com.example.examapi.question.domain.Question
 import com.example.examapi.question.domain.QuestionLevel
 import com.example.examapi.question.port.QuestionRepository
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -17,7 +17,7 @@ class ExamService(
     val examRepository: ExamRepository,
     val questionRepository: QuestionRepository,
 ) {
-    fun createNewExam(newExam: NewExam): ExamResponse = runBlocking {
+    suspend fun createNewExam(newExam: NewExam): ExamResponse = coroutineScope {
         val questions = questionRepository.findByDisciplineId(newExam.disciplineId)
         val (hardQuestions, mediumQuestions, easyQuestions) = separateQuestionsByDifficulty(questions)
         val examQuestions = (hardQuestions + mediumQuestions + easyQuestions).toMutableList()
@@ -34,7 +34,7 @@ class ExamService(
     }
 
     @Transactional
-    fun saveExam(newExam: NewExam, examQuestion: MutableList<Question>): Exam = runBlocking {
+    suspend fun saveExam(newExam: NewExam, examQuestion: MutableList<Question>): Exam = coroutineScope {
         val exam = Exam(newExam, examQuestion)
         async { examRepository.saveAndFlush(examRepository.save(exam)) }.await()
     }
