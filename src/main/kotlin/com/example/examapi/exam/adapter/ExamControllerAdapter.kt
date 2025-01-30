@@ -19,7 +19,7 @@ class ExamControllerAdapter(
     val examService: ExamService,
 ): ExamControllerPort {
     @PostMapping
-    override fun createNewExam(@RequestBody @Valid newExam: NewExam): ResponseEntity<ExamResponse> {
+    override suspend fun createNewExam(@RequestBody @Valid newExam: NewExam): ResponseEntity<ExamResponse> {
         return ResponseEntity.ok(examService.createNewExam(newExam))
     }
 }

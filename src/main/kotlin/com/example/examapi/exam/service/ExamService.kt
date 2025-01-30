@@ -7,6 +7,8 @@ import com.example.examapi.exam.port.ExamRepository
 import com.example.examapi.question.domain.Question
 import com.example.examapi.question.domain.QuestionLevel
 import com.example.examapi.question.port.QuestionRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,20 +17,26 @@ class ExamService(
     val examRepository: ExamRepository,
     val questionRepository: QuestionRepository,
 ) {
-    fun createNewExam(newExam: NewExam): ExamResponse {
+    suspend fun createNewExam(newExam: NewExam): ExamResponse = coroutineScope {
         val questions = questionRepository.findByDisciplineId(newExam.disciplineId)
         val (hardQuestions, mediumQuestions, easyQuestions) = separateQuestionsByDifficulty(questions)
         val examQuestions = (hardQuestions + mediumQuestions + easyQuestions).toMutableList()
+
+        // Shuffle questions and alternatives concurrently
+        val shuffledQuestions = async { examQuestions.shuffle() }
+        val shuffledAlternatives = async { examQuestions.forEach { shuffleAlternativesInQuestion(it) } }
+
+        shuffledQuestions.await()
+        shuffledAlternatives.await()
+
         val exam = saveExam(newExam, examQuestions)
-        exam.questions?.shuffle()
-        exam.questions?.forEach { shuffleAlternativesInQuestion(it) }
-        return ExamResponse(exam)
+        ExamResponse(exam)
     }
 
     @Transactional
-    fun saveExam(newExam: NewExam, examQuestion: MutableList<Question>): Exam {
+    suspend fun saveExam(newExam: NewExam, examQuestion: MutableList<Question>): Exam = coroutineScope {
         val exam = Exam(newExam, examQuestion)
-        return examRepository.saveAndFlush(examRepository.save(exam))
+        async { examRepository.saveAndFlush(examRepository.save(exam)) }.await()
     }
 
     private fun shuffleAlternativesInQuestion(question: Question) {
@@ -42,7 +50,7 @@ class ExamService(
         for (question in questions) {
             when (question.questionLevel) {
                 QuestionLevel.HARD -> hardQuestions.add(question)
-                QuestionLevel.MEDIUM-> mediumQuestions.add(question)
+                QuestionLevel.MEDIUM -> mediumQuestions.add(question)
                 QuestionLevel.EASY -> easyQuestions.add(question)
                 null -> TODO()
             }
