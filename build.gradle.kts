@@ -46,6 +46,8 @@ dependencies {
     implementation("io.projectreactor:reactor-core:3.5.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.slf4j:slf4j-api:2.0.7")
+    implementation("ch.qos.logback:logback-classic:1.4.11")
 }
 
 kotlin {

@@ -27,7 +27,7 @@ data class Question(
     @ManyToOne
     @JoinColumn(name = "discipline_id")
     var discipline: Discipline? = null,
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.PERSIST], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "alternative_id")
     var alternatives: MutableList<Alternative> = mutableListOf()
 )
